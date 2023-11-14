@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPalette, QColor
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QPalette, QColor
 
 from shared_memory_dict import SharedMemoryDict
 

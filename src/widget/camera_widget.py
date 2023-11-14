@@ -1,8 +1,8 @@
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout
 )
-from PySide6.QtCore import QThread, QTimer, QSize, Qt
-from PySide6.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QThread, QTimer, QSize, Qt
+from PyQt5.QtGui import QImage, QPixmap
 
 import numpy as np
 import pickle
@@ -68,6 +68,8 @@ class FrameLabel(QWidget):
         self.lb_frame.setAlignment(Qt.AlignCenter)
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.lb_frame)
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
 

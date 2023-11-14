@@ -1,4 +1,4 @@
-channel_num: 2
+ch_num: 2
 
 cameras:
   - id: 0
@@ -17,34 +17,37 @@ detectors:
     model: "yolov8n_apink"
     conf: 0.5
     iou: 0.5
-    rois:
+    events:
       - id: 0
-        pts:
+        type: "left"
+        rois:
           - [0.3, 0.3]
           - [0.7, 0.3]
           - [0.7, 0.7]
           - [0.3, 0.7]
-        event: "left" 
-    lines:
-      - id: 0
-        event: "reverse"
-        type: "start"
-        pts:
-          - [0.4, 0,1]
-          - [0.1, 0.4]
       - id: 1
-        event: "reverse"
-        type: "end"
-        pts:
-          - [0.8, 0.5]
-          - [0.5, 0.8]
+        type: "reverse"
+        lines:
+          single:
+            - [0.5, 0.3]
+            - [0.5, 0.7]
+          start:
+            - [0.4, 0,1]
+            - [0.1, 0.4]
+          end:
+            - [0.8, 0.5]
+            - [0.5, 0.8]
+
   - id: 1
     model:
     conf:
     iou:
-    rois:
-    lines:
+    events:
 
 models:
   - yolov8n_apink_10ep.pt
   - yolov8s_apink_100ep.pt
+
+comm:
+  driver:
+  baudrate: 115200

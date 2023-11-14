@@ -4,8 +4,8 @@ import yaml
 import pprint
 import numpy as np
 
-from PySide6.QtCore import Qt, QTimer, Slot, QSize
-from PySide6.QtWidgets import (
+from PyQt5.QtCore import Qt, QTimer, QSize
+from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
     QMainWindow,
@@ -15,8 +15,8 @@ from PySide6.QtWidgets import (
     QTabWidget,
     QWidget
 )
-from PySide6.QtGui import QGuiApplication
-from PySide6.QtQml import QQmlApplicationEngine
+from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtQml import QQmlApplicationEngine
 
 import pickle
 from multiprocessing import shared_memory
@@ -24,6 +24,8 @@ from multiprocessing import shared_memory
 app_version = '1.0'
 
 shm_config = shared_memory.SharedMemory(name="config", create=True, size=2048)
+shm_status = shared_memory.SharedMemory(name="status", create=True, size=5)
+shm_status.buf[:5] = bytes([0, 0, 0, 0, 0])
 
 with open('config/config.yaml', 'r') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
