@@ -184,23 +184,23 @@ class ControlWidget(QWidget):
         self.btn_comm_connect = QPushButton("CONNECT")
         self.btn_comm_connect.clicked.connect(self.connect_serial)
 
-        list_driver = os.popen("ls /dev/ttyTHS*").read().split('\n')
-        for driver in list_driver:
-            self.cb_comm_driver.addItem(driver)
+        # list_driver = os.popen("ls /dev/ttyTHS*").read().split('\n')
+        # for driver in list_driver:
+        #     self.cb_comm_driver.addItem(driver)
         
         save_driver = smd['hardware']['uart']['driver']
 
-        if save_driver in list_driver:
-            self.cb_comm_driver.setEnabled(False)
-            self.btn_comm_connect.setEnabled(False)
-            self.cb_comm_driver.setCurrentText(save_driver)
-            os.system(f"pm2 start src/uart.py --name serial -- {save_driver}")
-            self.lb_comm_status.setText("Connected")
-        else:
-            self.cb_comm_driver.setEnabled(True)
-            self.cb_comm_driver.setCurrentText("")
-            self.btn_comm_connect.setEnabled(True)
-            self.lb_comm_status.setText("Disconnected")
+        # if save_driver in list_driver:
+        #     self.cb_comm_driver.setEnabled(False)
+        self.btn_comm_connect.setEnabled(False)
+        #     self.cb_comm_driver.setCurrentText(save_driver)
+        os.system(f"pm2 start src/uart.py --name serial -- {save_driver}")
+        self.lb_comm_status.setText("Connected")
+        # else:
+        #     self.cb_comm_driver.setEnabled(True)
+        #     self.cb_comm_driver.setCurrentText("")
+        #     self.btn_comm_connect.setEnabled(True)
+        #     self.lb_comm_status.setText("Disconnected")
 
         self.t_btn_test_detect = QPushButton("DETECT", self)
         self.t_btn_test_detect.setCheckable(True)
@@ -326,9 +326,6 @@ class ControlWidget(QWidget):
     def connect_serial(self):
         os.system(f"pm2 start src/uart.py --name serial -- {self.cb_comm_driver.currentText()}")
         smd['hardware']['uart']['driver'] = self.cb_comm_driver.currentText()
-
-        # with open('config/config.yaml', 'w') as f:
-        #     yaml.dump(smd, f, default_flow_style=False)
 
         self.cb_comm_driver.setEnabled(False)
         self.btn_comm_connect.setEnabled(False)
