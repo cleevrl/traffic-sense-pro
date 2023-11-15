@@ -318,9 +318,9 @@ class ControlWidget(QWidget):
     def test_event(self):
         
         if smd['detectors'][self.id]['event']['type'] == 'reverse':
-            shm_status.buf[4] = 0xF2
+            shm_status.buf[4] = 0x12
         else:
-            ...
+            shm_status.buf[4] = 0x00
 
     def connect_serial(self):
         os.system(f"pm2 start src/uart.py --name serial -- {self.cb_comm_driver.currentText()}")
