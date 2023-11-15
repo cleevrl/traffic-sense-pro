@@ -188,13 +188,13 @@ class ControlWidget(QWidget):
         # for driver in list_driver:
         #     self.cb_comm_driver.addItem(driver)
         
-        save_driver = smd['hardware']['uart']['driver']
+        # save_driver = smd['hardware']['uart']['driver']
 
         # if save_driver in list_driver:
         #     self.cb_comm_driver.setEnabled(False)
         self.btn_comm_connect.setEnabled(False)
         #     self.cb_comm_driver.setCurrentText(save_driver)
-        os.system(f"pm2 start src/uart.py --name serial -- {save_driver}")
+        os.system(f"pm2 start src/uart.py --name serial")
         self.lb_comm_status.setText("Connected")
         # else:
         #     self.cb_comm_driver.setEnabled(True)
