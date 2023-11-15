@@ -95,7 +95,7 @@ class ControlWidget(QWidget):
         self.id = ch_id
         self.url = smd['cameras'][ch_id]['url']
         self.type = smd['cameras'][ch_id]['type']
-        self.vms_status = ['OFF', 'F.NO ENTRY', 'NO ENTRY', 'SAFE']
+        self.vms_status = ['OFF', '(F)진입금지', '진입금지', '안전운전', '금지', '안전']
 
         self.width = smd['cameras'][self.id]['width']
         self.height = smd['cameras'][self.id]['height']
@@ -352,7 +352,7 @@ class ControlWidget(QWidget):
     
     def change_vms(self):
         cur_vms = shm_status.buf[4]
-        if cur_vms == 3:
+        if cur_vms == 5:
             shm_status.buf[4] = 1
         else:
             shm_status.buf[4] = cur_vms + 1

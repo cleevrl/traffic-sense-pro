@@ -35,3 +35,12 @@ while True:
     frame_num += 1
     if frame_num == 0x40:
         frame_num = 0x00
+
+
+
+
+
+
+
+
+
