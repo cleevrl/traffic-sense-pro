@@ -1,22 +1,17 @@
 import os
 import sys
 import yaml
-import pprint
 import numpy as np
 
 from PyQt5.QtCore import Qt, QTimer, QSize
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QGuiApplication
-from PyQt5.QtQml import QQmlApplicationEngine
 
-import pickle
 from shared_memory_dict import SharedMemoryDict
 from multiprocessing import shared_memory
 
 app_version = '1.0'
 
 smd= SharedMemoryDict(name="smd", size=2048)
-# shm_config = shared_memory.SharedMemory(name="config", create=True, size=2048)
 shm_status = shared_memory.SharedMemory(name="status", create=True, size=5)
 shm_status.buf[:5] = bytes([0, 0, 0, 0, 0])
 
@@ -26,13 +21,12 @@ with open('config/config.yaml', 'r') as f:
     smd['cameras'] = config['cameras']
     smd['detectors'] = config['detectors']
     smd['hardware'] = config['hardware']
-    
-    # serialized = pickle.dumps(config)
-    # shm_config.buf[:len(serialized)] = serialized
+
+os.system(f"pm2 kill")
 
 for i in range(smd['ch_num']):
-    os.system(f"pm2 start src/video_capture.py --name cam_{i} -- {smd['cameras'][i]['url']} {i}")
-    os.system(f"pm2 start src/detector.py --name det_{i} -- {i}")
+    os.system(f"pm2 start src/video_capture.py --no-autorestart --name cam_{i} -- {smd['cameras'][i]['url']} {i}")
+    os.system(f"pm2 start src/detector.py --no-autorestart --name det_{i} -- {i}")
 
 import widget.channel_widget as channel
 import widget.log_widget as log

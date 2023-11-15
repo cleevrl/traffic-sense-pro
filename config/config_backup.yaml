@@ -2,37 +2,37 @@ ch_num: 2
 
 cameras:
   - id: 0
-    url: "http://59.14.95.196:1188/cam"
-    width: 320
+    url: "http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/102/httpPreview"
+    width: 352
     height: 240
-    type: "thermal"
+    type: "color"
   - id: 1
-    url: "http://59.14.95.196:1188/cam"
+    url: "http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/202/httpPreview"
     width: 320
     height: 240
     type: "thermal"
 
 detectors:
   - id: 0
-    model: "yolov8n_apink"
+    enable: True
+    model: "yolov8s_coco_pretrained.pt"
     conf: 0.5
     iou: 0.5
     event:
-      type: "left"
+      type: "reverse"
       roi:
-        - [0.3, 0.3]
-        - [0.7, 0.3]
-        - [0.7, 0.7]
-        - [0.3, 0.7]
       single:
-        - [0.5, 0.3]
-        - [0.5, 0.7]
       start:
+        - [0.4, 0,1]
+        - [0.1, 0.4]
       end:
+        - [0.8, 0.5]
+        - [0.5, 0.8]
   - id: 1
-    model:
-    conf:
-    iou:
+    enable: False
+    model: "yolov8s_apink_100ep.pt"
+    conf: 0.5
+    iou: 0.5
     event:
       type: "reverse"
       roi:
@@ -44,11 +44,7 @@ detectors:
         - [0.8, 0.5]
         - [0.5, 0.8]
 
-models:
-  - yolov8n_apink_10ep.pt
-  - yolov8s_apink_100ep.pt
-
 hardware:
   uart:
-    driver:
+    driver: '/dev/ttyTHS0'
     baudrate: 115200

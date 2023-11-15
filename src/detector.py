@@ -1,5 +1,4 @@
 import sys
-import pickle
 import numpy as np
 from ultralytics import YOLO
 
@@ -7,19 +6,16 @@ from multiprocessing import shared_memory
 from shared_memory_dict import SharedMemoryDict
 import time
 
-smd = SharedMemoryDict(name="smd", size=2048)
+while True:
+    
+    try:
+          smd = SharedMemoryDict(name="smd", size=2048)
+          break
 
-# while True:
+    except FileNotFoundError:
+        print("Not found smd, try 1 sec later ...")
+        time.sleep(1)
 
-#     try:
-#         shm_config = shared_memory.SharedMemory(name='config')
-#         bytes_config = bytes(shm_config.buf)
-#         config = pickle.loads(bytes_config)
-#         break
-
-#     except FileNotFoundError:
-#         print("Not found shm, try 1 sec later...")
-#         time.sleep(1)
 
 from ultralytics import YOLO
 
@@ -43,9 +39,15 @@ print("Start Detector Process...")
 try:
 
     while True:
-        results = model(raw_frame)
-        # print(results)
-        annotated_frame[:] = results[0].plot()
+        
+        if not smd['detectors'][ch_id]['enable']:
+            annotated_frame[:] = sample_array
+        else:        
+            results = model(raw_frame)
+            # print(results)
+            annotated_frame[:] = results[0].plot()
+
+            time.sleep(0.1)
 
 except KeyboardInterrupt:
     print("KeyboardInterrupt!!!")

@@ -4,7 +4,7 @@ from serial import Serial
 
 from multiprocessing import shared_memory
 
-shm_status = shared_memory.SharedMemory(name='status')
+shm_status = shared_memory.SharedMemory(name="status")
 
 driver = sys.argv[1]
 ser = Serial(f"{driver}", baudrate=115200)
@@ -31,4 +31,7 @@ while True:
     print(f"send msg -> {send_array}")
 
     time.sleep(0.2)
+    
     frame_num += 1
+    if frame_num == 0xFF:
+        frame_num = 0

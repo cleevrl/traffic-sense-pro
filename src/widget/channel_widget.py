@@ -4,7 +4,6 @@ from PyQt5.QtGui import QImage, QPixmap
 
 import yaml
 import numpy as np
-import pickle
 import time
 import cv2
 import os
@@ -20,12 +19,8 @@ list_shm_annotated_frame =[]
 list_raw_frame = []
 list_annotated_frame = []
 
-shm_status = shared_memory.SharedMemory(name='status')
+shm_status = shared_memory.SharedMemory(name="status")
 smd = SharedMemoryDict(name="smd", size=2048)
-
-# shm_config = shared_memory.SharedMemory(name='config')
-# bytes_config = bytes(shm_config.buf[:])
-# config = pickle.loads(bytes_config)
 
 while True:
 
@@ -73,10 +68,15 @@ class FrameLabel(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-
     def update_frame(self):
-        frame = cv2.resize(list_annotated_frame[self.id], (800, 600), interpolation=cv2.INTER_CUBIC)
-        # frame = cv2.resize(self.raw_frame, (800, 600), interpolation=cv2.INTER_CUBIC)
+
+        frame_type = self.parent().frame_type
+
+        if frame_type == "annotated":
+            frame = cv2.resize(list_annotated_frame[self.id], (800, 600), interpolation=cv2.INTER_CUBIC)
+        elif frame_type == "raw":
+            frame = cv2.resize(list_raw_frame[self.id], (800, 600), interpolation=cv2.INTER_CUBIC)
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image = qimage2ndarray.array2qimage(frame)
         self.lb_frame.setPixmap(QPixmap.fromImage(image))
@@ -95,7 +95,7 @@ class ControlWidget(QWidget):
         self.id = ch_id
         self.url = smd['cameras'][ch_id]['url']
         self.type = smd['cameras'][ch_id]['type']
-        self.vms_status = ['OFF', 'NO ENTRY', 'F.NO ENTRY', 'SAFE']
+        self.vms_status = ['OFF', 'F.NO ENTRY', 'NO ENTRY', 'SAFE']
 
         self.width = smd['cameras'][self.id]['width']
         self.height = smd['cameras'][self.id]['height']
@@ -150,6 +150,19 @@ class ControlWidget(QWidget):
         self.r_btn_roi = QRadioButton("ROI")
         self.r_btn_roi.setEnabled(False)
 
+        if smd['detectors'][self.id]['enable']:
+            self.t_btn_detector_enable = QPushButton("ACTIVE")
+        else:
+            self.t_btn_detector_enable = QPushButton("DISABLE")
+        self.t_btn_detector_enable.adjustSize()
+        self.t_btn_detector_enable.setCheckable(True)
+        self.t_btn_detector_enable.clicked[bool].connect(self.activate_detector)
+
+        self.t_btn_frame_swap = QPushButton("RAW")
+        self.t_btn_frame_swap.adjustSize()
+        self.t_btn_frame_swap.setCheckable(True)
+        self.t_btn_frame_swap.clicked[bool].connect(self.swap_frame)
+
         gl_detector_config = QGridLayout()
         gl_detector_config.addWidget(QLabel("Model : "), 0, 0)
         gl_detector_config.addWidget(self.cb_model, 0, 1)
@@ -159,6 +172,8 @@ class ControlWidget(QWidget):
         gl_detector_config.addWidget(self.r_btn_end_line, 2, 1)
         gl_detector_config.addWidget(self.r_btn_roi, 3, 0)
         gl_detector_config.addWidget(self.r_btn_single_line, 3, 1)
+        gl_detector_config.addWidget(self.t_btn_detector_enable, 4, 0)
+        gl_detector_config.addWidget(self.t_btn_frame_swap, 4, 1)
 
         gb_detector_config = QGroupBox("Detector Config")
         gb_detector_config.setLayout(gl_detector_config)
@@ -265,6 +280,22 @@ class ControlWidget(QWidget):
     def update_ui(self):
         ...
 
+    def activate_detector(self, e):
+        smd["detectors"][self.id]["enable"] = e
+        if e:
+            self.t_btn_detector_enable.setText("ACTIVE")
+        else:
+            self.t_btn_detector_enable.setText("DISABLE")
+
+    def swap_frame(self, e):
+        
+        if e:
+            self.parent().frame_type = "annotated"
+            self.t_btn_frame_swap.setText("ANNOTATED")
+        else:
+            self.parent().frame_type = "raw"
+            self.t_btn_frame_swap.setText("RAW")
+
     def edit_settings(self, e):
 
         self.ui_enable(e)
@@ -285,7 +316,11 @@ class ControlWidget(QWidget):
         self.btn_cancel.setEnabled(enable)
 
     def test_event(self):
-        ...
+        
+        if smd['detectors'][self.id]['event']['type'] == 'reverse':
+            shm_status.buf[4] = 0xF2
+        else:
+            ...
 
     def connect_serial(self):
         os.system(f"pm2 start src/uart.py --name serial -- {self.cb_comm_driver.currentText()}")
@@ -314,7 +349,8 @@ class ControlWidget(QWidget):
         else:
             self.btn_change_vms.setEnabled(False)
             shm_status.buf[4] = 0
-            self.btn_change_vms.setText(self.vms_status[shm_status.buf[4]])
+        
+        self.btn_change_vms.setText(self.vms_status[shm_status.buf[4]])
     
     def change_vms(self):
         cur_vms = shm_status.buf[4]
@@ -377,6 +413,10 @@ class ChannelWidget(QWidget):
 
         super().__init__()
         self.ch_id = ch_id
+        if smd['detectors'][ch_id]['enable']:
+            self.frame_type = "annotated"
+        else:
+            self.frame_type = "raw"
         self.init_ui()
 
     def init_ui(self):
