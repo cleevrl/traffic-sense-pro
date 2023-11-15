@@ -289,10 +289,10 @@ class ControlWidget(QWidget):
 
     def connect_serial(self):
         os.system(f"pm2 start src/uart.py --name serial -- {self.cb_comm_driver.currentText()}")
-        config['comm']['driver'] = self.cb_comm_driver.currentText()
+        smd['hardware']['uart']['driver'] = self.cb_comm_driver.currentText()
 
-        with open('config/config.yaml', 'w') as f:
-            yaml.dump(config, f, default_flow_style=False)
+        # with open('config/config.yaml', 'w') as f:
+        #     yaml.dump(smd, f, default_flow_style=False)
 
         self.cb_comm_driver.setEnabled(False)
         self.btn_comm_connect.setEnabled(False)
