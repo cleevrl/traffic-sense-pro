@@ -5,42 +5,36 @@ import pprint
 import numpy as np
 
 from PyQt5.QtCore import Qt, QTimer, QSize
-from PyQt5.QtWidgets import (
-    QApplication,
-    QLabel,
-    QMainWindow,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPushButton,
-    QTabWidget,
-    QWidget
-)
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtQml import QQmlApplicationEngine
 
 import pickle
+from shared_memory_dict import SharedMemoryDict
 from multiprocessing import shared_memory
 
 app_version = '1.0'
 
-shm_config = shared_memory.SharedMemory(name="config", create=True, size=2048)
+smd= SharedMemoryDict(name="smd", size=2048)
+# shm_config = shared_memory.SharedMemory(name="config", create=True, size=2048)
 shm_status = shared_memory.SharedMemory(name="status", create=True, size=5)
 shm_status.buf[:5] = bytes([0, 0, 0, 0, 0])
 
 with open('config/config.yaml', 'r') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
-    serialized = pickle.dumps(config)
-    shm_config.buf[:len(serialized)] = serialized
-
-for i in range(config['ch_num']):
-
-    camera = config['cameras'][i]
-    camera_url = camera['url']
+    smd['ch_num'] = config['ch_num']
+    smd['cameras'] = config['cameras']
+    smd['detectors'] = config['detectors']
+    smd['hardware'] = config['hardware']
     
-    os.system(f"pm2 start src/video_capture.py --name cam_{i} -- {camera_url} {i}")
+    # serialized = pickle.dumps(config)
+    # shm_config.buf[:len(serialized)] = serialized
+
+for i in range(smd['ch_num']):
+    os.system(f"pm2 start src/video_capture.py --name cam_{i} -- {smd['cameras'][i]['url']} {i}")
     os.system(f"pm2 start src/detector.py --name det_{i} -- {i}")
 
-import widget.camera_widget as camera
+import widget.channel_widget as channel
 import widget.log_widget as log
 import widget.color_widget as color
 
@@ -56,8 +50,8 @@ class MainWindow(QMainWindow):
         tabs.setTabPosition(QTabWidget.North)
         tabs.setMovable(True)
 
-        for i in range(config['ch_num']):
-            tabs.addTab(camera.CameraWidget(i), f"ch_{i}")
+        for i in range(smd['ch_num']):
+            tabs.addTab(channel.ChannelWidget(i), f"ch_{i}")
 
         self.setCentralWidget(tabs)
 
@@ -83,13 +77,6 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
 
         self.setCentralWidget(widget)
-
-# QML Code 
-# app = QGuiApplication()
-
-# engine = QQmlApplicationEngine()
-# engine.quit.connect(app.quit)
-# engine.load('src/layout/main.qml')
 
 app = QApplication(sys.argv)
 

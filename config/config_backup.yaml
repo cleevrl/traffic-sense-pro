@@ -17,37 +17,38 @@ detectors:
     model: "yolov8n_apink"
     conf: 0.5
     iou: 0.5
-    events:
-      - id: 0
-        type: "left"
-        rois:
-          - [0.3, 0.3]
-          - [0.7, 0.3]
-          - [0.7, 0.7]
-          - [0.3, 0.7]
-      - id: 1
-        type: "reverse"
-        lines:
-          single:
-            - [0.5, 0.3]
-            - [0.5, 0.7]
-          start:
-            - [0.4, 0,1]
-            - [0.1, 0.4]
-          end:
-            - [0.8, 0.5]
-            - [0.5, 0.8]
-
+    event:
+      type: "left"
+      roi:
+        - [0.3, 0.3]
+        - [0.7, 0.3]
+        - [0.7, 0.7]
+        - [0.3, 0.7]
+      single:
+        - [0.5, 0.3]
+        - [0.5, 0.7]
+      start:
+      end:
   - id: 1
     model:
     conf:
     iou:
-    events:
+    event:
+      type: "reverse"
+      roi:
+      single:
+      start:
+        - [0.4, 0,1]
+        - [0.1, 0.4]
+      end:
+        - [0.8, 0.5]
+        - [0.5, 0.8]
 
 models:
   - yolov8n_apink_10ep.pt
   - yolov8s_apink_100ep.pt
 
-comm:
-  driver:
-  baudrate: 115200
+hardware:
+  uart:
+    driver:
+    baudrate: 115200

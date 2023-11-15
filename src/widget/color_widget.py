@@ -1,9 +1,6 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPalette, QColor
 
-from shared_memory_dict import SharedMemoryDict
-
-
 class ColorWidget(QWidget):
 
     def __init__(self, color, size):

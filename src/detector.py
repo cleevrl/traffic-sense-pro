@@ -4,19 +4,22 @@ import numpy as np
 from ultralytics import YOLO
 
 from multiprocessing import shared_memory
+from shared_memory_dict import SharedMemoryDict
 import time
 
-while True:
+smd = SharedMemoryDict(name="smd", size=2048)
 
-    try:
-        shm_config = shared_memory.SharedMemory(name='config')
-        bytes_config = bytes(shm_config.buf)
-        config = pickle.loads(bytes_config)
-        break
+# while True:
 
-    except FileNotFoundError:
-        print("Not found shm, try 1 sec later...")
-        time.sleep(1)
+#     try:
+#         shm_config = shared_memory.SharedMemory(name='config')
+#         bytes_config = bytes(shm_config.buf)
+#         config = pickle.loads(bytes_config)
+#         break
+
+#     except FileNotFoundError:
+#         print("Not found shm, try 1 sec later...")
+#         time.sleep(1)
 
 from ultralytics import YOLO
 
@@ -25,8 +28,8 @@ ch_id = int(sys.argv[1])
 model_name = "yolov8s_coco_pretrained.pt"
 model = YOLO(f"./data/pt/{model_name}")
 
-width = config['cameras'][ch_id]['width']
-height = config['cameras'][ch_id]['height']
+width = smd['cameras'][ch_id]['width']
+height = smd['cameras'][ch_id]['height']
 
 sample_array = np.zeros((height, width, 3), dtype=np.uint8)
 shm_raw_frame = shared_memory.SharedMemory(name=f"raw_frame_{ch_id}")

@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 
 from multiprocessing import shared_memory
-
+from shared_memory_dict import SharedMemoryDict
 
 cam_url = sys.argv[1]
 ch_id = int(sys.argv[2])
@@ -14,7 +14,10 @@ print(ch_id)
 cap = cv2.VideoCapture(cam_url)
 print("Camera Connected...")
 
-shm_config = shared_memory.SharedMemory(name='config')
+# smd_config = SharedMemoryDict(name="config", size=2048)
+smd = SharedMemoryDict(name="smd", size=2048)
+
+# shm_config = shared_memory.SharedMemory(name='config')
 
 if not cap.isOpened:  
     print("Cannot connect Camera")
@@ -22,13 +25,13 @@ if not cap.isOpened:
 else:
     ret, frame = cap.read()
     
-    bytes_config = bytes(shm_config.buf[:])
-    config = pickle.loads(bytes_config)
-    config['cameras'][ch_id]['width'] = frame.shape[1]
-    config['cameras'][ch_id]['height'] = frame.shape[0]
+    # bytes_config = bytes(shm_config.buf[:])
+    # config = pickle.loads(bytes_config)
+    smd['cameras'][ch_id]['width'] = frame.shape[1]
+    smd['cameras'][ch_id]['height'] = frame.shape[0]
 
-    serialized = pickle.dumps(config)
-    shm_config.buf[:len(serialized)] = serialized
+    # serialized = pickle.dumps(config)
+    # shm_config.buf[:len(serialized)] = serialized
 
     sample_array = np.zeros(frame.shape, dtype=np.uint8)
     shm_raw_frame = shared_memory.SharedMemory(name=f"raw_frame_{ch_id}", create=True, size=sample_array.nbytes) 
