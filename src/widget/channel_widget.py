@@ -315,10 +315,11 @@ class ControlWidget(QWidget):
         self.btn_save.setEnabled(enable)
         self.btn_cancel.setEnabled(enable)
 
-    def test_event(self):
+    def test_event(self, e):
         
-        if smd['detectors'][self.id]['event']['type'] == 'reverse':
-            shm_status.buf[4] = 0x12
+        if e: 
+            if smd['detectors'][self.id]['event']['type'] == 'reverse':
+                shm_status.buf[4] = 0x12
         else:
             shm_status.buf[4] = 0x00
 
