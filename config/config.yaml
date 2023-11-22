@@ -1,11 +1,11 @@
-ch_num: 2
+ch_num: 1
 
 cameras:
   - id: 0
-    url: "http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/102/httpPreview"
-    width: 352
+    url: "http://59.14.95.196:1188/cam"
+    width: 320
     height: 240
-    type: "color"
+    type: "thermal"
   - id: 1
     url: "http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/202/httpPreview"
     width: 320
