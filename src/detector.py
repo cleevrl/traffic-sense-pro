@@ -58,7 +58,7 @@ try:
         results = model(raw_frame)
         # results = model.track(raw_frame)
         for res in results[0]:
-            xyxy = res.boxes.xyxyn.numpy()[0]
+            xyxy = res.boxes.xyxyn.cpu().numpy()[0]
             # print(xyxy)
             box_obj = box(xyxy[0], xyxy[1], xyxy[2], xyxy[3])
             sl_pts = smd['detectors'][ch_id]['event']['single']
@@ -69,7 +69,6 @@ try:
             print(jointed)
 
             if jointed and not is_event:
-                print("hey")
                 box_center_y = (xyxy[1] + xyxy[3]) / 2
                 sl_center_y = (sl_pts[0][1] + sl_pts[1][1]) / 2
                 if box_center_y < sl_center_y:
@@ -80,6 +79,7 @@ try:
 
                 else:
                     print("Right way^^")
+                    is_event = True
 
         annotated_frame[:] = results[0].plot()
 
