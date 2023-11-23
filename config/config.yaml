@@ -1,44 +1,43 @@
-ch_num: 1
-
 cameras:
-  - id: 0
-    url: "http://59.14.95.196:1188/cam"
-    width: 320
-    height: 240
-    type: "thermal"
-  - id: 1
-    url: "http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/202/httpPreview"
-    width: 320
-    height: 240
-    type: "thermal"
-
+- height: 240
+  id: 0
+  type: thermal
+  url: http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/202/httpPreview
+  width: 320
+- height: 240
+  id: 1
+  type: thermal
+  url: http://admin:dongbuict0@59.14.95.196:6480/ISAPI/Streaming/channels/202/httpPreview
+  width: 320
+ch_num: 1
 detectors:
-  - id: 0
-    enable: True
-    model: "yolov8s_apink_100ep.pt"
-    conf: 0.5
-    iou: 0.5
-    event:
-      type: "reverse"
-      roi:
-      single:
-        - [0.8, 0.5]
-        - [0.5, 0.8]
-      start:
-      end:
-  - id: 1
-    enable: False
-    model: "yolov8s_apink_100ep.pt"
-    conf: 0.5
-    iou: 0.5
-    event:
-      type: "reverse"
-      roi:
-      single:
-      start:
-      end:
-
+- conf: 0.5
+  enable: true
+  event:
+    end: null
+    roi: null
+    single:
+    - - 0.309
+      - 0.693
+    - - 0.514
+      - 0.68
+    start: null
+    type: reverse
+  id: 0
+  iou: 0.5
+  model: yolov8s_apink_100ep.pt
+- conf: 0.5
+  enable: false
+  event:
+    end: null
+    roi: null
+    single: null
+    start: null
+    type: reverse
+  id: 1
+  iou: 0.5
+  model: yolov8s_apink_100ep.pt
 hardware:
   uart:
-    driver: '/dev/ttyTHS0'
     baudrate: 115200
+    driver: /dev/ttyTHS0
