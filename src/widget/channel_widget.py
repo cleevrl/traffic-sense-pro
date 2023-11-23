@@ -52,6 +52,10 @@ class FrameLabel(QWidget):
         self.id = ch_id
         self.width = smd['cameras'][ch_id]['width']
         self.height = smd['cameras'][ch_id]['height']
+        
+        self.mode = "normal"
+
+        self.init_sl()
         self.init_ui()
 
         timer = QTimer(self)
@@ -68,6 +72,13 @@ class FrameLabel(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
+    def init_sl(self):
+        self.single = smd['detectors'][self.id]['event']['single']
+        self.sl_pts = []
+        for pt in self.single:
+            cal_pt = [int(pt[0] * 800), int(pt[1] * 600)]
+            self.sl_pts.append(cal_pt)
+
     def update_frame(self):
 
         frame_type = self.parent().frame_type
@@ -78,14 +89,44 @@ class FrameLabel(QWidget):
             frame = cv2.resize(list_raw_frame[self.id], (800, 600), interpolation=cv2.INTER_CUBIC)
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.polylines(frame, [np.array(self.sl_pts)], True, (255, 255, 0), 3)
+
         image = qimage2ndarray.array2qimage(frame)
         self.lb_frame.setPixmap(QPixmap.fromImage(image))
     
     def mousePressEvent(self, event) -> None:
-        print(event.pos())
-        return super().mousePressEvent(event)
+
+        if self.parent().mode == "run" or self.mode == "normal":
+            print("RUN or NORMAL MODE")
         
-class ControlWidget(QWidget):
+            return super().mousePressEvent(event)
+
+        if event.button() & Qt.LeftButton:
+            if len(self.sl_pts) >= 2:
+                print("cannot add more pts for single line")
+            else:
+                self.sl_pts.append([event.x(), event.y()])
+                print(f"add single line pt -> [{event.x()}, {event.y()}]")
+
+        elif event.button() & Qt.RightButton:
+            self.sl_pts.clear()
+
+        return super().mousePressEvent(event)
+    
+    def check_draw_mode(self):
+        
+        if self.mode == "sl":
+            return len(self.sl_pts) == 2
+
+    def get_norm_sl(self):
+
+        norms = []
+        for pt in self.sl_pts:
+            norms.append([round(pt[0] / 800, 3), round(pt[1] / 600, 3)])
+        
+        return norms
+        
+class ControlWidget(QWidget): 
 
     def __init__(self, ch_id):
 
@@ -95,7 +136,7 @@ class ControlWidget(QWidget):
         self.id = ch_id
         self.url = smd['cameras'][ch_id]['url']
         self.type = smd['cameras'][ch_id]['type']
-        self.vms_status = ['OFF', '(F)진입금지', '진입금지', '안전운전', '금지', '안전']
+        self.vms_status = ['OFF', '(F)진입금지', '진입금지', '안\전운전', '금지', '안전']
 
         self.width = smd['cameras'][self.id]['width']
         self.height = smd['cameras'][self.id]['height']
@@ -147,20 +188,27 @@ class ControlWidget(QWidget):
         self.r_btn_end_line.setEnabled(False)
         self.r_btn_single_line = QRadioButton("Single Line")
         self.r_btn_single_line.setEnabled(False)
+        self.r_btn_single_line.clicked.connect(self.draw_single_line)
         self.r_btn_roi = QRadioButton("ROI")
         self.r_btn_roi.setEnabled(False)
+        self.r_btn_normal = QRadioButton("Normal")
+        self.r_btn_normal.setEnabled(False)
 
         if smd['detectors'][self.id]['enable']:
             self.t_btn_detector_enable = QPushButton("ACTIVE")
+            self.t_btn_detector_enable.setCheckable(True)
+            self.t_btn_detector_enable.setChecked(True)
         else:
             self.t_btn_detector_enable = QPushButton("DISABLE")
+            self.t_btn_detector_enable.setCheckable(True)
+            self.t_btn_detector_enable.setChecked(False)
         self.t_btn_detector_enable.adjustSize()
-        self.t_btn_detector_enable.setCheckable(True)
         self.t_btn_detector_enable.clicked[bool].connect(self.activate_detector)
 
-        self.t_btn_frame_swap = QPushButton("RAW")
+        self.t_btn_frame_swap = QPushButton("ANNOTATED")
         self.t_btn_frame_swap.adjustSize()
         self.t_btn_frame_swap.setCheckable(True)
+        self.t_btn_frame_swap.setChecked(True)
         self.t_btn_frame_swap.clicked[bool].connect(self.swap_frame)
 
         gl_detector_config = QGridLayout()
@@ -172,8 +220,9 @@ class ControlWidget(QWidget):
         gl_detector_config.addWidget(self.r_btn_end_line, 2, 1)
         gl_detector_config.addWidget(self.r_btn_roi, 3, 0)
         gl_detector_config.addWidget(self.r_btn_single_line, 3, 1)
-        gl_detector_config.addWidget(self.t_btn_detector_enable, 4, 0)
-        gl_detector_config.addWidget(self.t_btn_frame_swap, 4, 1)
+        gl_detector_config.addWidget(self.r_btn_normal, 4, 0)
+        gl_detector_config.addWidget(self.t_btn_detector_enable, 5, 0)
+        gl_detector_config.addWidget(self.t_btn_frame_swap, 5, 1)
 
         gb_detector_config = QGroupBox("Detector Config")
         gb_detector_config.setLayout(gl_detector_config)
@@ -245,28 +294,24 @@ class ControlWidget(QWidget):
         gb_hardware_ui.setLayout(gl_hardware_ui)
 
         # BOTTOM BTNS
-        self.btn_edit = QPushButton("EDIT", self)
+        self.t_btn_edit = QPushButton("EDIT", self)
+        self.t_btn_edit.setCheckable(True)
         self.btn_save = QPushButton("SAVE", self)
-        self.btn_cancel = QPushButton("CANCEL", self)
         self.btn_exit = QPushButton("EXIT", self)
         
-        self.btn_edit.adjustSize()
+        self.t_btn_edit.adjustSize()
         self.btn_save.adjustSize()
-        self.btn_cancel.adjustSize()
         self.btn_exit.adjustSize()
 
         self.btn_save.setEnabled(False)
-        self.btn_cancel.setEnabled(False)
         
-        self.btn_edit.clicked.connect(self.edit_settings)
+        self.t_btn_edit.clicked[bool].connect(self.edit_settings)
         self.btn_save.clicked.connect(self.save_settings)
-        self.btn_cancel.clicked.connect(self.cancel)
         self.btn_exit.clicked.connect(qApp.quit)
 
         edit_btn_layout = QHBoxLayout()
-        edit_btn_layout.addWidget(self.btn_edit)
+        edit_btn_layout.addWidget(self.t_btn_edit)
         edit_btn_layout.addWidget(self.btn_save)
-        edit_btn_layout.addWidget(self.btn_cancel)
         edit_btn_layout.addWidget(self.btn_exit)
 
         layout = QVBoxLayout()
@@ -277,15 +322,22 @@ class ControlWidget(QWidget):
 
         self.setLayout(layout)
 
+    def draw_single_line(self):
+        self.parent().set_draw_mode("sl")
+
     def update_ui(self):
         ...
 
     def activate_detector(self, e):
-        smd["detectors"][self.id]["enable"] = e
+
         if e:
             self.t_btn_detector_enable.setText("ACTIVE")
+            smd['detectors'][self.id]['enable'] = True
         else:
             self.t_btn_detector_enable.setText("DISABLE")
+            smd['detectors'][self.id]['enable'] = False
+            print("???")
+            print(smd['detectors'][self.id]['enable'])
 
     def swap_frame(self, e):
         
@@ -298,6 +350,16 @@ class ControlWidget(QWidget):
 
     def edit_settings(self, e):
 
+        if e:
+            self.t_btn_edit.setText("CANCEL")
+            self.parent().mode = "edit"
+        
+        else:
+            self.t_btn_edit.setText("EDIT")
+            self.parent().frame_label.init_sl()
+            self.parent().mode = "run"
+            self.parent().set_draw_mode("normal")
+
         self.ui_enable(e)
 
     def ui_enable(self, enable):
@@ -306,14 +368,14 @@ class ControlWidget(QWidget):
         self.cb_camera_type.setEnabled(enable)
         self.cb_model.setEnabled(enable)
         self.cb_event_list.setEnabled(enable)
-        self.r_btn_start_line.setEnabled(enable)
-        self.r_btn_end_line.setEnabled(enable)
-        self.r_btn_roi.setEnabled(enable)
-        self.r_btn_single_line.setEnabled(enable)
 
-        self.btn_edit.setEnabled(not enable)
+        self.r_btn_start_line.setEnabled(False)
+        self.r_btn_end_line.setEnabled(False)
+        self.r_btn_roi.setEnabled(False)
+        self.r_btn_single_line.setEnabled(enable)
+        self.r_btn_normal.setChecked(True)
+
         self.btn_save.setEnabled(enable)
-        self.btn_cancel.setEnabled(enable)
 
     def test_event(self, e):
         
@@ -361,46 +423,26 @@ class ControlWidget(QWidget):
 
     def save_settings(self):
 
-        self.ui_enable(False)
+        if self.parent().is_setting_valid():
+            print("settings saved")
+            self.parent().mode = "run"
+            self.parent().set_draw_mode("normal")
+            self.ui_enable(False)
 
-        cap = cv2.VideoCapture(self.le_url.text())
-
-        if cap.isOpened():
-            # smd[''] = self.le_url.text()
-            ...
-
-    def cancel(self):
-        
-        self.ui_enable(False)
-
-    def push_btn_save_and_cancel(self):
-        self.btn_edit.setEnabled(True)
-        self.cb_camera_type.setEnabled(True)
-        self.btn_save.setEnabled(False)
-        self.btn_cancel.setEnabled(False)
-        
-        self.le_url.setEnabled(False)
-        self.cb_camera_type.setEnabled(False)
-
-        cap = cv2.VideoCapture(self.le_url.text())
-
-        if cap.isOpened():
-            self.url = self.le_url.text()
-            self.type = self.cb_camera_type.currentText()
-
-            smd['cameras'][self.id]['url'] = self.url
-            smd['cameras'][self.id]['type'] = self.type
+            detectors = smd['detectors']
+            detectors[self.id]['event']['single'] = self.parent().frame_label.get_norm_sl()
+            smd['detectors'] = detectors
 
             with open('config/config.yaml', 'w') as f:
-                yaml.dump(smd, f, default_flow_style=False)
+                yaml.dump(dict(smd), f, default_flow_style=False)
             
-            print("Change config -> restart program")
+            self.t_btn_edit.setChecked(False)
+            self.t_btn_edit.setText("EDIT")
 
         else:
-            cap.release()
-            self.le_url.setText(self.url)
-            self.cb_camera_type.setCurrentText(self.type)
-            print("Failed Save ... Wrong URL")
+            print("invalid setting... check settings")
+        
+
       
     def change_type(self, e):
         print(f"change type -> {e}")
@@ -411,6 +453,7 @@ class ChannelWidget(QWidget):
 
         super().__init__()
         self.ch_id = ch_id
+        self.mode = "run"
         if smd['detectors'][ch_id]['enable']:
             self.frame_type = "annotated"
         else:
@@ -426,3 +469,11 @@ class ChannelWidget(QWidget):
         self.main_layout.addWidget(ControlWidget(self.ch_id))
 
         self.setLayout(self.main_layout)
+
+    def is_setting_valid(self):
+
+        return self.frame_label.check_draw_mode()
+
+    def set_draw_mode(self, draw_mode):
+
+        self.frame_label.mode = draw_mode

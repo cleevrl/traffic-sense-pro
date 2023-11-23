@@ -20,14 +20,14 @@ else:
 
     print("Camera Connected!")
 
-    while True:
+    ret, frame = cap.read()
 
-        ret, frame = cap.read()
+    # while True:
 
-        if ret:
-            break
-        else:
-            print("ret False")
+    #     ret, frame = cap.read()
+
+    #     if ret:
+    #         break
     
     smd['cameras'][ch_id]['width'] = frame.shape[1]
     smd['cameras'][ch_id]['height'] = frame.shape[0]

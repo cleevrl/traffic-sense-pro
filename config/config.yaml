@@ -15,19 +15,17 @@ cameras:
 detectors:
   - id: 0
     enable: True
-    model: "yolov8s_coco_pretrained.pt"
+    model: "yolov8s_apink_100ep.pt"
     conf: 0.5
     iou: 0.5
     event:
       type: "reverse"
       roi:
       single:
-      start:
-        - [0.4, 0,1]
-        - [0.1, 0.4]
-      end:
         - [0.8, 0.5]
         - [0.5, 0.8]
+      start:
+      end:
   - id: 1
     enable: False
     model: "yolov8s_apink_100ep.pt"
@@ -38,11 +36,7 @@ detectors:
       roi:
       single:
       start:
-        - [0.4, 0,1]
-        - [0.1, 0.4]
       end:
-        - [0.8, 0.5]
-        - [0.5, 0.8]
 
 hardware:
   uart:

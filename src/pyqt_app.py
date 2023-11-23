@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import time
 import numpy as np
 
 from PyQt5.QtCore import Qt, QTimer, QSize
@@ -9,6 +10,7 @@ from PyQt5.QtWidgets import *
 from shared_memory_dict import SharedMemoryDict
 from multiprocessing import shared_memory
 
+os.system(f"pm2 kill")
 app_version = '1.0'
 
 smd= SharedMemoryDict(name="smd", size=2048)
@@ -21,8 +23,6 @@ with open('config/config.yaml', 'r') as f:
     smd['cameras'] = config['cameras']
     smd['detectors'] = config['detectors']
     smd['hardware'] = config['hardware']
-
-os.system(f"pm2 kill")
 
 for i in range(smd['ch_num']):
     os.system(f"pm2 start src/video_capture.py --no-autorestart --name cam_{i} -- {smd['cameras'][i]['url']} {i}")
