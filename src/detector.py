@@ -55,7 +55,7 @@ try:
         # if not smd['detectors'][ch_id]['enable']:
         #     annotated_frame[:] = sample_array
         # else:        
-        results = model(raw_frame)
+        results = model(raw_frame, conf=0.8)
         # results = model.track(raw_frame)
         for res in results[0]:
             xyxy = res.boxes.xyxyn.cpu().numpy()[0]
@@ -74,8 +74,8 @@ try:
                 if box_center_y < sl_center_y:
                     print("!!!!!!! REVERSE")
                     is_event = True
-                    shm_status.buf[4] = 0x12
-                    play_sound()
+                    #shm_status.buf[4] = 0x12
+                    #play_sound()
 
                 else:
                     print("Right way^^")
@@ -90,7 +90,7 @@ try:
             if event_counter == 50:
                 event_counter = 0
                 is_event = False
-                shm_status.buf[4] = 0x00
+                #shm_status.buf[4] = 0x00
                 print("event release")
 
 except KeyboardInterrupt:
